@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <title>Activity Monitor</title>
+</head>
+
+<body class="bg-blue-900 p-4 text-gray-500">
+
+    <div class="container mx-auto">
+
+        <div id="AppVue">
+
+            <h1 class="text-2xl mb-4">Activity Monitor</h1>
+
+            <div class="bg-blue-700 text-gray-100 rounded-md p-4 mb-4">
+
+                <div class="-mx-2 flex mb-4">
+                    <div class="px-2 text-right w-1/3 sm:w-1/5 text-blue-400">
+                        CPU
+                    </div>
+
+                    <div class="px-2 text-left w-2/3 sm:w-4/5">
+
+                        <div class="-mx-2 sm:flex">
+                            <div class="px-2 w-full sm:w-2/3">
+                                <div class="bg-gray-400 rounded overflow-hidden">
+                                    <div class="bg-white transition-all duration-300 h-6"
+                                        :style="'width: ' + (cpuUsage * 100) + '%;'"></div>
+                                </div>
+                            </div>
+
+                            <div class="px-2 w-full sm:w-1/3">
+                                {{ cpuUsageFormatted }}%
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="-mx-2 flex mb-4">
+                    <div class="px-2 text-right w-1/3 sm:w-1/5 text-blue-400">
+                        Memory
+                    </div>
+
+                    <div class="px-2 text-left w-2/3 sm:w-4/5">
+
+                        <div class="-mx-2 sm:flex">
+                            <div class="px-2 w-full sm:w-2/3">
+                                <div class="bg-gray-400 rounded overflow-hidden">
+                                    <div class="bg-white transition-all duration-300 h-6"
+                                        :style="'width: ' + (usedMemory / totalMemory * 100) + '%;'"></div>
+                                </div>
+                            </div>
+
+                            <div class="px-2 w-full sm:w-1/3">
+                                {{ usedMemoryFormatted }} / {{ totalMemoryFormatted }}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="-mx-2 flex mb-4">
+                    <div class="px-2 text-right w-1/3 sm:w-1/5 text-blue-400">
+                        Tasks
+                    </div>
+
+                    <div class="px-2 text-left w-2/3 sm:w-4/5">
+                        {{ tasks.raw.length }}
+                    </div>
+                </div>
+
+                <div class="-mx-2 flex mb-4">
+                    <div class="px-2 text-right w-1/3 sm:w-1/5 text-blue-400">
+                        Load average
+                    </div>
+
+                    <div class="px-2 text-left w-2/3 sm:w-4/5">
+                        {{ loadavg.join(', ') }}
+                    </div>
+                </div>
+
+                <div class="-mx-2 flex">
+                    <div class="px-2 text-right w-1/3 sm:w-1/5 text-blue-400">
+                        Uptime
+                    </div>
+
+                    <div class="px-2 text-left w-2/3 sm:w-4/5">
+                        {{ uptime.formatted }}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bg-blue-700 text-gray-100 rounded-md py-4 mb-4">
+                <div class="px-4 text-xl mb-4">
+                    Tasks
+                </div>
+                <table class="table-auto w-full">
+                    <thead>
+                        <tr class="bg-blue-800 text-gray-500 text-sm">
+                            <th class="px-4 py-1 text-left" :class="{'text-white': tasks.sortType == 'pid'}" style="width: 100px;">
+                                <a href="#" @click.prevent="selectSortType('pid')">
+                                    PID
+                                    <span v-if="tasks.sortType == 'pid' && tasks.sortAsc > 0"
+                                        class="fa fa-sort-up"></span>
+                                    <span v-if="tasks.sortType == 'pid' && tasks.sortAsc < 0"
+                                        class="fa fa-sort-down"></span>
+                                </a>
+                            </th>
+                            <th class="px-4 py-1 text-left" :class="{'text-white': tasks.sortType == 'name'}">
+                                <a href="#" @click.prevent="selectSortType('name')">
+                                    Command
+                                    <span v-if="tasks.sortType == 'name' && tasks.sortAsc > 0"
+                                        class="fa fa-sort-up"></span>
+                                    <span v-if="tasks.sortType == 'name' && tasks.sortAsc < 0"
+                                        class="fa fa-sort-down"></span>
+                                </a>
+                            </th>
+                            <th class="px-4 py-1 text-left" :class="{'text-white': tasks.sortType == 'cpu'}" style="width: 100px;">
+                                <a href="#" @click.prevent="selectSortType('cpu')">
+                                    CPU %
+                                    <span v-if="tasks.sortType == 'cpu' && tasks.sortAsc > 0"
+                                        class="fa fa-sort-up"></span>
+                                    <span v-if="tasks.sortType == 'cpu' && tasks.sortAsc < 0"
+                                        class="fa fa-sort-down"></span>
+                                </a>
+                            </th>
+                            <th class="px-4 py-1 text-left" :class="{'text-white': tasks.sortType == 'usedMemory'}" style="width: 170px;">
+                                <a href="#" @click.prevent="selectSortType('usedMemory')">
+                                    Memory
+                                    <span v-if="tasks.sortType == 'usedMemory' && tasks.sortAsc > 0"
+                                        class="fa fa-sort-up"></span>
+                                    <span v-if="tasks.sortType == 'usedMemory' && tasks.sortAsc < 0"
+                                        class="fa fa-sort-down"></span>
+                                </a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="task in tasks.list" class="border-b border-blue-800 hover:bg-blue-600">
+                            <td class="px-4 py-2">
+                                {{ task.pid }}
+                            </td>
+                            <td class="px-4 py-2">
+                                {{ task.name }}
+                            </td>
+                            <td class="px-4 py-2">
+                                {{ task.cpuFormatted }}
+                            </td>
+                            <td class="px-4 py-2" nowrap>
+                                {{ task.memoryFormatted }}
+                                ({{ task.usedMemoryFormatted }}%)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"></script>
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script src="/script.js"></script>
+</body>
+
+</html>
